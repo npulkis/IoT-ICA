@@ -1,0 +1,22 @@
+{% extends "layout.html" %}
+
+{% block title %}Login{% endblock %}
+
+{% block head %}
+{% endblock %}
+{% block body %}
+
+<form method="POST">
+    <p>Scan your card to register it.</p>
+    <input type="hidden" name="rfid_card_id" id="rfid_card_id">
+    <button type="submit">Register Card</button>
+</form>
+<script>
+    // This assumes the RFID card ID is dynamically received from the Raspberry Pi via a separate PubNub listener.
+    function updateCardId(cardId) {
+        document.getElementById('rfid_card_id').value = cardId;
+    }
+
+</script>
+
+{% endblock %}

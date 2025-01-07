@@ -1,0 +1,9 @@
+<form method="POST">
+    <label for="locker_number">Select Locker:</label>
+    <select name="locker_number" required>
+        {% for locker in lockers %}
+        <option value="{{ locker.locker_number }}">Locker {{ locker.locker_number }}</option>
+        {% endfor %}
+    </select>
+    <button type="submit">Assign Locker</button>
+</form>
