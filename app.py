@@ -12,8 +12,7 @@ db= my_db.db
 
 
 app = Flask(__name__)
-app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=20)  # Adjust as needed
-
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=20) 
 temporary_store = {}
 
 
@@ -45,7 +44,54 @@ def send_pubnub_message(channel, message):
 
 @app.route("/", methods=["GET","POST"])
 def index(): 
-    return redirect(url_for('login'))
+    return redirect(url_for('dashboard'))
+
+@app.route('/dashboard', methods=['GET', 'POST'])
+def dashboard():
+    if 'email' not in session:
+        flash('Please log in first!', 'danger')
+        return redirect(url_for('login'))
+
+    user = my_db.UserLogin.query.filter_by(email=session['email']).first()
+    if not user:
+        flash('User not found.', 'danger')
+        return redirect(url_for('login'))
+
+    lockers = my_db.Locker.query.all()
+
+    if request.method == 'POST':
+        locker_id = request.form.get('locker_id')
+        action = request.form.get('action')
+
+        locker = my_db.Locker.query.filter_by(id=locker_id).first()
+        if not locker:
+            flash('Locker not found.', 'danger')
+            return redirect(url_for('dashboard'))
+
+        if action == 'reserve':
+            if locker.assigned_to is None:
+                locker.is_occupied = True
+                locker.assigned_to = user.id
+                db.session.commit()
+
+                send_pubnub_message("led_control", {"led_number": locker.locker_number, "action": "on"})
+                flash(f'Locker {locker.locker_number} reserved successfully.', 'success')
+            else:
+                flash('Locker is already assigned to another user.', 'danger')
+
+        elif action == 'unreserve':
+            if locker.assigned_to == user.id:
+                locker.is_occupied = False
+                locker.assigned_to = None
+                db.session.commit()
+
+                send_pubnub_message("led_control", {"led_number": locker.locker_number, "action": "off"})
+                flash(f'Locker {locker.locker_number} unreserved successfully.', 'success')
+            else:
+                flash('You can only unreserve lockers assigned to you.', 'danger')
+
+    return render_template('dashboard.html', lockers=lockers, user=user)
+
 
 @app.route('/toggle_locker', methods=['POST'])
 def toggle_locker():
@@ -166,7 +212,6 @@ def register_card():
 
     return render_template('register_card.html')
 
-
 class CardRegistrationCallback(SubscribeCallback):
     def message(self, pubnub, message):
         data = message.message
@@ -238,7 +283,6 @@ def select_locker():
             locker.assigned_to = user.id
             db.session.commit()
 
-            # Turn on LED for the assigned locker
             send_pubnub_message("led_control", {"led_number": locker_number, "action": "on"})
             flash(f'Locker {locker_number} assigned successfully!', 'success')
             return redirect(url_for('loggedin'))
@@ -266,7 +310,6 @@ def scan_card():
     locker.is_occupied = not locker.is_occupied
     db.session.commit()
 
-    # Use send_led_command for PubNub communication
     send_led_command(locker.locker_number, action)
 
     return jsonify({
@@ -316,6 +359,7 @@ def login():
             session['name'] = user.name
             session['user_name'] = user.user_name
             flash('Login successful!', 'success')
+            return redirect(url_for('dashboard'))
         else:
             flash('Invalid email or password. Please try again.', 'danger')
     return render_template('login.html')

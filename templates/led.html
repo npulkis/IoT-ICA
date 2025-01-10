@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LED Control</title>
+    <script>
+        async function controlLED(ledNumber, action) {
+            const response = await fetch('/control_led', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ led_number: ledNumber, action: action }),
+            });
+            const result = await response.json();
+            alert(result.message || "Error controlling LED");
+        }
+    </script>
+</head>
+<body>
+    <h1>Control LEDs</h1>
+    <div>
+        <button onclick="controlLED(1, 'on')">Turn On LED 1</button>
+        <button onclick="controlLED(1, 'off')">Turn Off LED 1</button>
+    </div>
+    <div>
+        <button onclick="controlLED(2, 'on')">Turn On LED 2</button>
+        <button onclick="controlLED(2, 'off')">Turn Off LED 2</button>
+    </div>
+    <div>
+        <button onclick="controlLED(3, 'on')">Turn On LED 3</button>
+        <button onclick="controlLED(3, 'off')">Turn Off LED 3</button>
+    </div>
+    <!-- <div>
+        <button onclick="controlLED(4, 'on')">Turn On LED 4</button>
+        <button onclick="controlLED(4, 'off')">Turn Off LED 4</button>
+    </div> -->
+</body>
+</html>
