@@ -1,22 +1,33 @@
 {% extends "layout.html" %}
 
-{% block title %}Login{% endblock %}
+{% block title %}Register RFID Card{% endblock %}
 
 {% block head %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 {% endblock %}
-{% block body %}
 
-<form method="POST">
-    <p>Scan your card to register it.</p>
-    <input type="hidden" name="rfid_card_id" id="rfid_card_id">
-    <button type="submit">Register Card</button>
-</form>
+{% block body %}
+<div class="container mt-5">
+    <div class="card mx-auto" style="max-width: 500px;">
+        <div class="card-header text-center bg-primary text-white">
+            <h3>Register RFID Card</h3>
+        </div>
+        <div class="card-body">
+            <form method="POST" class="needs-validation" novalidate>
+                <p class="mb-3">Please scan your card to register it:</p>
+                <input type="hidden" name="rfid_card_id" id="rfid_card_id">
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-success btn-lg">Register Card</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script>
-    // This assumes the RFID card ID is dynamically received from the Raspberry Pi via a separate PubNub listener.
     function updateCardId(cardId) {
         document.getElementById('rfid_card_id').value = cardId;
+        alert(`Card ID ${cardId} scanned and ready to register.`);
     }
-
 </script>
-
 {% endblock %}
